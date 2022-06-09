@@ -5,6 +5,19 @@ import * as React from 'react'
 import * as auth from 'auth-provider'
 import {AuthenticatedApp} from './authenticated-app'
 import {UnauthenticatedApp} from './unauthenticated-app'
+import {client} from 'utils/api-client'
+
+async function getUser() {
+  let user = null
+
+  const token = await auth.getToken()
+  if (token) {
+    const data = await client('me', {token})
+    user = data.user
+  }
+
+  return user
+}
 
 function App() {
   const [user, setUser] = React.useState(null)
@@ -13,7 +26,6 @@ function App() {
     setUser(user)
   }
   const register = async formData => {
-    console.log(formData)
     const user = await auth.register(formData)
     setUser(user)
   }
@@ -21,6 +33,10 @@ function App() {
     await auth.logout()
     setUser(null)
   }
+
+  React.useEffect(() => {
+    getUser().then(u => setUser(u))
+  }, [])
 
   return user ? (
     <AuthenticatedApp logout={logout} user={user} />
